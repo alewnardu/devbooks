@@ -49,7 +49,12 @@ docker exec -it devbooks_app npm install
 docker exec -it devbooks_app npm list
 ```
 
-7. A API do projeto estará disponível em `http://localhost:3000/api`
+7. Executar as migrações do projeto (Será gerado um arquivo de migração dev.db)
+```bash
+docker exec -it devbooks_app npx prisma migrate dev
+```
+
+10. A API do projeto estará disponível em `http://localhost:3000/api`
 
 ---
 
