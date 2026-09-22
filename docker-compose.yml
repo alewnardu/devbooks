@@ -1,0 +1,17 @@
+name: devbooks
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devbooks_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      
+volumes:
+  devbooks_data:
+
