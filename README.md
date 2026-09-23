@@ -2,38 +2,41 @@
 
 > Repositório da **Atividade Prática Avaliativa (A1)** da disciplina **Programação para Web II**, do curso de **Tecnologia em Análise e Desenvolvimento de Sistemas (TADS)** — 4º período, **UNITINS — Palmas/TO**.
 
-Este projeto foi desenvolvido com o objetivo de aplicar, de forma prática, conceitos relacionados ao desenvolvimento de aplicações web, construção de APIs, persistência de dados, ORM e utilização de ambientes conteinerizados.
+Este projeto foi desenvolvido com o objetivo de aplicar, de forma prática, conceitos relacionados ao desenvolvimento de aplicações web, construção de APIs REST, persistência de dados, utilização de ORM e execução de aplicações em ambientes conteinerizados.
 
 ---
 
 ## 📚 Sobre o projeto
 
-A aplicação consiste em uma API desenvolvida com **Node.js** e **Express**, utilizando **Prisma ORM** para comunicação com o banco de dados.
+O **DevBooks** consiste em uma API REST desenvolvida com **Node.js** e **Express**, utilizando o **Prisma ORM** para gerenciamento da camada de persistência.
 
-O ambiente de desenvolvimento é executado por meio do **Docker Compose**, permitindo que as principais dependências do projeto sejam inicializadas de forma padronizada.
+O banco de dados utilizado é o **SQLite**, integrado à aplicação por meio do adapter **`@prisma/adapter-better-sqlite3`**.
+
+O ambiente de desenvolvimento é executado utilizando **Docker**, permitindo que a aplicação seja inicializada de maneira padronizada, sem a necessidade de instalar o Node.js diretamente na máquina hospedeira.
 
 ### Principais componentes
 
-* API REST desenvolvida com **Express**
-* Persistência de dados utilizando **SQLite**
-* Mapeamento objeto-relacional com **Prisma ORM**
-* Containerização da aplicação e do banco de dados
-* Gerenciamento de dependências com **npm**
+* 🌐 API REST desenvolvida com **Express**
+* 🟩 Banco de dados **SQLite**
+* 🔷 Mapeamento objeto-relacional com **Prisma ORM**
+* 🔌 Integração com SQLite utilizando **`@prisma/adapter-better-sqlite3`**
+* 🐳 Execução da aplicação em **Docker**
+* 📦 Gerenciamento de dependências com **npm**
 
 ---
 
 ## 🛠️ Tecnologias utilizadas
 
-| Tecnologia                       | Versão / Utilização           |
-| -------------------------------- | ----------------------------- |
-| 🟢 **Node.js**                   | 24                            |
-| ⚡ **Express**                    | Framework para API            |
-| 🐘 **PostgreSQL**                | 17                            |
-| 🔷 **Prisma ORM**                | 7.10.0                        |
-| 🔌 **Prisma PostgreSQL Adapter** | Integração com PostgreSQL     |
-| 🐳 **Docker**                    | Containerização               |
-| 🐳 **Docker Compose**            | Orquestração dos containers   |
-| 📦 **npm**                       | Gerenciamento de dependências |
+| Tecnologia                              | Versão / Utilização                   |
+| --------------------------------------- | ------------------------------------- |
+| 🟢 **Node.js**                          | 24                                    |
+| ⚡ **Express**                           | Framework para desenvolvimento da API |
+| 🗃️ **SQLite**                          | Banco de dados relacional             |
+| 🔷 **Prisma ORM**                       | 7.10.0                                |
+| 🔌 **`@prisma/adapter-better-sqlite3`** | Adapter do Prisma para SQLite         |
+| 🐳 **Docker**                           | Containerização da aplicação          |
+| 🐳 **Docker Compose**                   | Orquestração do ambiente              |
+| 📦 **npm**                              | Gerenciamento de dependências         |
 
 ---
 
@@ -45,7 +48,7 @@ Antes de iniciar o projeto, certifique-se de possuir:
 * Docker Compose
 * Git
 
-> **Observação:** não é necessário instalar Node.js diretamente na máquina. Esses serviço será executado por meio do container definido no projeto.
+> **Observação:** não é necessário instalar o Node.js diretamente na máquina. A aplicação é executada dentro do container definido no projeto.
 
 ---
 
@@ -63,7 +66,7 @@ git clone https://github.com/alewnardu/devbooks.git
 cd devbooks
 ```
 
-### 3. Inicializar os containers
+### 3. Inicializar a aplicação
 
 Execute:
 
@@ -71,11 +74,11 @@ Execute:
 docker compose up --build -d
 ```
 
-O parâmetro `--build` garante que a imagem da aplicação seja construída novamente quando necessário.
+O parâmetro `--build` solicita a reconstrução da imagem da aplicação.
 
 O parâmetro `-d` executa os containers em segundo plano.
 
-Para acompanhar os logs da aplicação:
+Para acompanhar os logs:
 
 ```bash
 docker compose logs -f
@@ -83,21 +86,27 @@ docker compose logs -f
 
 ---
 
-## 🔎 Verificando os containers
+## 🔎 Verificando o ambiente
 
-Para verificar se os containers estão em execução:
+Para verificar os containers em execução:
 
 ```bash
 docker ps
 ```
 
-O ambiente deverá apresentar os containers definidos no `docker-compose.yml`, que neste caso será a aplicação Node.
+A aplicação deverá estar sendo executada no container:
+
+```text
+devbooks_app
+```
+
+Como o projeto utiliza **SQLite**, não existe um container separado para banco de dados. O banco é armazenado em um arquivo SQLite utilizado pela aplicação.
 
 ---
 
 ## 📦 Instalação das dependências
 
-Caso as dependências ainda não tenham sido instaladas no container da aplicação, execute:
+Caso as dependências ainda não estejam instaladas no container da aplicação, execute:
 
 ```bash
 docker exec -it devbooks_app npm install
@@ -109,52 +118,79 @@ Para verificar as dependências instaladas:
 docker exec -it devbooks_app npm list
 ```
 
+> **Observação:** dependendo da configuração do `Dockerfile` e dos volumes definidos no `docker-compose.yml`, o `npm install` pode ser executado durante a construção da imagem. Nesse caso, não será necessário executá-lo manualmente após cada inicialização.
+
 ---
 
 ## 🗄️ Banco de dados e Prisma
 
-O projeto utiliza **SQLite** como banco de dados e **Prisma ORM** para gerenciamento da camada de persistência, por meio do Prisma SQLite Adapter.
+O projeto utiliza **SQLite** como banco de dados e **Prisma ORM** como ferramenta de mapeamento objeto-relacional.
 
-### Executar as migrações
+A comunicação entre o Prisma e o SQLite é realizada utilizando o adapter:
 
-Após os containers estarem em execução, aplique as migrações:
-
-```bash
-docker exec -it devbooks_app npx prisma migrate dev
+```text
+@prisma/adapter-better-sqlite3
 ```
 
-Esse comando cria ou atualiza a estrutura do banco de dados de acordo com o arquivo:
+O modelo de dados da aplicação está definido em:
 
 ```text
 prisma/schema.prisma
 ```
 
-As migrações geradas ficam armazenadas em:
+### 🗂️ Banco SQLite
+
+O banco de dados SQLite é armazenado em um arquivo:
+
+```text
+dev.db
+```
+
+Esse arquivo é gerado localmente a partir das migrações do Prisma e, normalmente, deve ser incluído no `.gitignore` para evitar versionar dados locais do banco.
+
+### 🔄 Executar as migrações
+
+Após iniciar o container da aplicação, execute:
+
+```bash
+docker exec -it devbooks_app npx prisma migrate dev
+```
+
+Esse comando utiliza o arquivo:
+
+```text
+prisma/schema.prisma
+```
+
+para criar ou atualizar a estrutura do banco de dados.
+
+As migrações ficam armazenadas em:
 
 ```text
 prisma/migrations/
 ```
 
-> **Importante:** este projeto utiliza **SQL**. Portanto, será gerado um arquivo `dev.db` na raiz do projeto, que é normalmente ignorado pelo Git.
+### ⚙️ Gerar o Prisma Client
 
-### Gerar o Prisma Client
-
-Depois de configurar o banco e aplicar as migrações:
+Após aplicar as migrações, execute:
 
 ```bash
 docker exec -it devbooks_app npx prisma generate
 ```
 
-Esse comando lê o `schema.prisma` e gera o **Prisma Client**, utilizado pela aplicação para realizar operações no banco de dados.
+Esse comando gera o **Prisma Client** de acordo com a estrutura definida no `schema.prisma`.
+
+O código gerado pelo Prisma é utilizado pela aplicação para executar operações de leitura e escrita no banco de dados.
 
 ---
 
-## ▶️ Ordem recomendada para executar o projeto
+## ▶️ Execução completa
 
-Para uma instalação limpa, a sequência recomendada é:
+Para executar o projeto a partir de um clone novo:
 
 ```bash
 git clone https://github.com/alewnardu/devbooks.git
+
 cd devbooks
 
 docker compose up --build -d
@@ -166,32 +202,41 @@ docker exec -it devbooks_app npx prisma migrate dev
 docker exec -it devbooks_app npx prisma generate
 ```
 
-Após a execução desses comandos, a API estará disponível em:
-
-**http://localhost:3000/api**
-
----
-
-## 🌐 Acesso à API
-
-Com o ambiente em execução, utilize:
+Após a execução dos comandos, a API estará disponível em:
 
 ```text
 http://localhost:3000/api
 ```
 
-Você pode testar os endpoints utilizando ferramentas como:
+---
 
-* [Plataforma Postman](https://www.postman.com/)
+## 🌐 Acesso à API
 
-Disponibilização do arquivo JSON da coleção do Postman/Insomnia com todas as rotas configuradas para testes imediatos:
-* [Coleção do Postman](devbooks.postman_collection)
+A API pode ser acessada através do endereço:
+
+**http://localhost:3000/api**
+
+Os endpoints podem ser testados utilizando ferramentas de desenvolvimento de APIs, como o [Postman](https://www.postman.com/).
+
+### 📮 Coleção do Postman
+
+Para facilitar os testes, o projeto disponibiliza uma coleção do Postman contendo as requisições configuradas para a API.
+
+**[📥 Importar coleção do Postman](devbooks.postman_collection.json)**
+
+Para utilizá-la:
+
+1. Abra o **Postman**.
+2. Selecione **Import**.
+3. Selecione o arquivo `devbooks.postman_collection.json`.
+4. A coleção será adicionada ao ambiente do Postman.
+5. Execute as requisições disponíveis para testar os endpoints.
 
 ---
 
 ## 📁 Estrutura do projeto
 
-Uma visão simplificada da organização:
+A estrutura principal do projeto está organizada da seguinte forma:
 
 ```text
 devbooks/
@@ -200,53 +245,56 @@ devbooks/
 │   └── schema.prisma
 │
 ├── src/
-|   ├── controllers/
-|   |    ├── authors.controller.js
-|   |    └── books.controller.js
-|   ├── generated/
-|   |    └── prisma/
-|   |         ├── client.ts
-|   |         └── ...
-    ├── lib/
-|   |    └── prisma.js
-|   ├── routes/
-|   |    ├── authors.routes.js
-|   |    └── books.routes.js
+│   ├── controllers/
+│   │   ├── authors.controller.js
+│   │   └── books.controller.js
+│   │
+│   ├── generated/
+│   │   └── prisma/
+│   │       ├── client.ts
+│   │       └── ...
+│   │
+│   ├── lib/
+│   │   └── prisma.js
+│   │
+│   ├── routes/
+│   │   ├── authors.routes.js
+│   │   └── books.routes.js
+│   │
 │   └── server.js
 │
 ├── .env
 ├── .env.example
 ├── .gitignore
-├── dev.db
-├── devbooks.postman_collection 
 ├── docker-compose.yml
 ├── Dockerfile
 ├── LICENSE
 ├── package-lock.json
 ├── package.json
 ├── prisma.config.ts
+├── devbooks.postman_collection.json
 └── README.md
 ```
 
-> A estrutura vai evoluir conforme a evolução do projeto, considerando os comandos a serem executados e as funcionalidades implementadas.
+> **Observação:** o arquivo `dev.db` é gerado localmente pelo SQLite e pode não aparecer no repositório caso esteja incluído no `.gitignore`.
 
 ---
 
 ## 🧪 Comandos úteis
 
-### Visualizar containers em execução
+### Verificar containers em execução
 
 ```bash
 docker ps
 ```
 
-### Visualizar logs
+### Visualizar logs da aplicação
 
 ```bash
 docker compose logs -f
 ```
 
-### Visualizar apenas os logs da aplicação
+### Visualizar logs de um serviço específico
 
 ```bash
 docker compose logs -f app
@@ -264,18 +312,32 @@ docker exec -it devbooks_app sh
 docker exec -it devbooks_app npx prisma studio
 ```
 
-### Parar os containers
+O Prisma Studio permite visualizar e manipular os dados armazenados no banco SQLite através de uma interface web.
+
+### Executar novamente as migrações
+
+```bash
+docker exec -it devbooks_app npx prisma migrate dev
+```
+
+### Gerar novamente o Prisma Client
+
+```bash
+docker exec -it devbooks_app npx prisma generate
+```
+
+### Parar a aplicação
 
 ```bash
 docker compose down
 ```
 
-### Parar os containers e remover os volumes
+> Como o banco utilizado é **SQLite**, os dados não são armazenados em um volume de um container PostgreSQL. Eles ficam no arquivo `dev.db`. Portanto, `docker compose down -v` não deve ser apresentado como o mecanismo principal para apagar o banco SQLite.
 
-> ⚠️ Isso também remove os dados armazenados no volume do banco de dados.
+Para recriar o banco local a partir das migrações, caso o arquivo `dev.db` seja removido:
 
 ```bash
-docker compose down -v
+docker exec -it devbooks_app npx prisma migrate dev
 ```
 
 ---
@@ -302,13 +364,31 @@ Consulte o arquivo [`LICENSE`](LICENSE) para obter os termos completos da licen�
 
 Contribuições, sugestões e feedbacks são bem-vindos.
 
-Para contribuir:
+Para contribuir com o projeto:
 
-1. Faça um **fork** do projeto.
-2. Crie uma branch para sua alteração.
-3. Realize as modificações.
-4. Faça o commit das alterações.
-5. Envie um **Pull Request**.
+1. Faça um **fork** do repositório.
+
+2. Crie uma branch para sua alteração:
+
+   ```bash
+   git checkout -b minha-alteracao
+   ```
+
+3. Realize as modificações necessárias.
+
+4. Faça o commit:
+
+   ```bash
+   git commit -m "feat: descrição da alteração"
+   ```
+
+5. Envie a branch para o repositório remoto:
+
+   ```bash
+   git push origin minha-alteracao
+   ```
+
+6. Abra um **Pull Request**.
 
 ---
 
