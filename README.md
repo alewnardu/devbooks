@@ -222,13 +222,13 @@ Os endpoints podem ser testados utilizando ferramentas de desenvolvimento de API
 
 Para facilitar os testes, o projeto disponibiliza uma coleção do Postman contendo as requisições configuradas para a API.
 
-**[📥 Importar coleção do Postman](devbooks.postman_collection.json)**
+**[📥 Importar coleção do Postman](devbooks.postman_collection)**
 
 Para utilizá-la:
 
 1. Abra o **Postman**.
 2. Selecione **Import**.
-3. Selecione o arquivo `devbooks.postman_collection.json`.
+3. Selecione o arquivo `devbooks.postman_collection`.
 4. A coleção será adicionada ao ambiente do Postman.
 5. Execute as requisições disponíveis para testar os endpoints.
 
